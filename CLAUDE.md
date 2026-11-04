@@ -4,4 +4,4 @@
 - The mod may only spell the engine as `$.noun.method(...)` at its call site, and `read`/`update` need an atom defined in the same file: helpers get the `Io` closures built in `session.start`, and the atoms stay in `register.tsx`.
 - Run `node --test test/*.test.mjs` and `claude plugin validate .` before committing. Tests use fake bridges; never call a real model from tests.
 - Running work belongs to the shared bridges in `Common/` (`dsh-bridge`, `codex-bridge`); `daemon/bridges.mjs` adapts them. A change a bridge needs is made there, for every caller, never worked around here.
-- Bump `version` in `.claude-plugin/plugin.json` when the daemon changes, so `launch.mjs --upgrade` can replace an older running hub.
+- Bump `version` in `.claude-plugin/plugin.json` for every release (the first call of a session on a newer plugin replaces an older running hub). Release: commit, tag `v<version>`, push `main` and the tag, never move a published tag; then `claude plugin marketplace update agent-hub-tools` and `claude plugin update agent-hub@agent-hub-tools` to install it.
