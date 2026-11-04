@@ -1,0 +1,5 @@
+{
+  "name": "agent-hub-tools",
+  "owner": { "name": "RetMnit" },
+  "plugins": [{ "name": "agent-hub", "source": "./" }]
+}
