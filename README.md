@@ -5,7 +5,7 @@ A Claude Code plugin that delegates tasks to two other local agents as subagents
 - **DSH** (DeepSeek Harness): desktop mode runs the session in DSH Desktop, where you can watch it; headless mode runs it in a hidden DSH host.
 - **Codex**: runs `codex exec` in the background; progress shows on the card. A thread opens in the Codex app only when you ask, since the app then holds it against resumes until it quits.
 
-Each Claude session has its own settings per backend, saved once in the side pane before the first task. Old DSH sessions and Codex threads can be resumed with their original settings. A side pane in Claude Code (desktop app and terminal) shows the configuration form and one live card per subagent, and the session is woken when a task ends unread.
+Each Claude session has its own settings per backend, saved once in the side pane before the first task. Old DSH sessions and Codex threads can be resumed with their original settings, and Codex threads Agent Hub started can be deleted (the Codex app cannot delete them without loading each one). A side pane in Claude Code (desktop app and terminal) shows the configuration form and one live card per subagent, and the session is woken when a task ends unread.
 
 ## Layout
 

@@ -46,6 +46,8 @@ export function codexBridge({ state = CODEX_STATE, connect } = {}) {
     // A message for the turn that is running.
     steer: async (jobId, prompt) => unify(await call('steer', { jobId, prompt })),
     open: ({ jobId, sessionId }) => call('open', jobId ? { jobId } : { sessionId }),
+    // Deletes threads Agent Hub started; the bridge drops its job records with them.
+    delete: sessionIds => call('delete', { sessionIds }),
     // Every Agent Hub job, at once when anything changed after `cursor`.
     events: async ({ cursor, timeoutMs }) => {
       const reply = await call('events', { afterCursor: cursor, timeoutMs });

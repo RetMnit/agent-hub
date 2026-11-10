@@ -123,9 +123,15 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'agents_sessions',
-    description: 'Find earlier DSH sessions or Codex threads to resume, by title text or workspace. Reads lists only, not transcripts.',
+    description: 'Find earlier DSH sessions or Codex threads to resume or delete, by title text or workspace (Codex: query matches the first prompt, not the card title). Codex threads say `deletable`: started by Agent Hub, so agents_delete may remove them. Reads lists only, not transcripts.',
     inputSchema: { type: 'object', additionalProperties: false, required: ['backend'], properties: { backend, mode: { ...mode, description: 'DSH only: which store to search (default desktop).' }, query: { type: 'string' }, workspace: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } } },
     run: (io, args) => call(io, 'sessions', args),
+  },
+  {
+    name: 'agents_delete',
+    description: 'Permanently delete Codex threads that Agent Hub subagents started, with their cards (the Codex app cannot delete them without loading each one). Only when the user asks, after they confirm the list: it cannot be undone. Find them with agents_status or agents_sessions (`deletable`). Threads the user started themselves are refused. Refusals come back per thread in `errors`: bridge/not-owner, bridge/busy (a task runs on it), codex/thread-open (the Codex app has it loaded until it quits), codex/thread-forked (delete the named fork too).',
+    inputSchema: { type: 'object', additionalProperties: false, required: ['sessionIds'], properties: { sessionIds: { type: 'array', minItems: 1, maxItems: 100, items: { type: 'string' } } } },
+    run: async (io, args) => { const value = await call(io, 'delete', { backend: 'codex', ...args }); void refresh(io); return value },
   },
   {
     name: 'agents_open',

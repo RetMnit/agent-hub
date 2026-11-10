@@ -124,6 +124,24 @@ test('resume, open and cancel follow each backend\'s rules', async t => {
   await assert.rejects(call('steer', { jobId: headless.jobId, prompt: 'x' }), /Only Codex/);
 });
 
+test('deleting Codex threads drops their cards everywhere, and only what the bridge deleted', async t => {
+  const { hub, backends, call } = makeHub('delete'); t.after(() => hub.close());
+  await call('saveConfig', { backend: 'codex', values: { workspace: temp } });
+  const { jobs } = await call('start', { backend: 'codex', tasks: [{ prompt: 'a', requestId: 'x1' }, { prompt: 'b', requestId: 'x2' }] });
+  const theirs = await hub.methods.resume({ owner: 'session-b', backend: 'codex', sessionId: jobs[0].sessionId, prompt: 'more', requestId: 'y1' });
+  for (const job of [...jobs, theirs]) backends.codex.finish(job.jobId);
+  await until(async () => (await call('state')).subagents.every(card => card.status === 'completed'));
+  await call('wait', { jobIds: [jobs[0].jobId] });
+  backends.codex.delete = async ids => { backends.codex.calls.push(['delete', ids]); return { deleted: [ids[0]], errors: ids.slice(1).map(sessionId => ({ sessionId, code: 'bridge/not-owner', message: 'no' })) }; };
+  const reply = await call('delete', { backend: 'codex', sessionIds: [jobs[0].sessionId, 'users-own'] });
+  assert.deepEqual(reply.errors.map(error => error.code), ['bridge/not-owner'], 'refusals come back as the bridge gave them');
+  assert.deepEqual((await call('state')).subagents.map(card => card.sessionId), [jobs[1].sessionId], 'the deleted thread\'s card is gone');
+  assert.deepEqual((await hub.methods.state({ owner: 'session-b' })).subagents, [], 'from every Claude session');
+  await assert.rejects(call('result', { jobId: jobs[0].jobId }), { code: 'hub/job' });
+  await assert.rejects(call('delete', { backend: 'dsh', sessionIds: ['s'] }), { code: 'hub/delete' });
+  await assert.rejects(call('delete', { backend: 'codex', sessionIds: [] }), { code: 'hub/delete' });
+});
+
 test('a Host that stops answering is reported while its jobs run, and the mirror keeps them', async t => {
   const { hub, backends, call } = makeHub('offline'); t.after(() => hub.close());
   await call('saveConfig', { backend: 'dsh', values: { mode: 'headless', workspace: temp } });

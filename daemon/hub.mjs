@@ -283,6 +283,24 @@ export function createHub({ state = STATE, backends = { codex: codexBridge(), ds
       if (backend === 'codex' && job && !terminal(job.status)) throw new HubError('hub/open', 'The Codex app cannot load a thread while its run writes it; open it when the run ends');
       return backends[backend].open({ jobId: job?.jobId, sessionId });
     },
+    // Deletes threads Agent Hub's subagents started (the bridge refuses the user's own
+    // threads), then the hub's copies of their jobs, so the pane and the bridge agree.
+    delete: async params => {
+      owner(params);
+      const backend = backendOf(params.backend);
+      if (!backends[backend].delete) throw new HubError('hub/delete', 'Only Codex threads can be deleted here');
+      const ids = params.sessionIds;
+      if (!Array.isArray(ids) || !ids.length || ids.length > 100 || ids.some(id => typeof id !== 'string' || !id.trim())) throw new HubError('hub/delete', 'sessionIds must list 1 to 100 thread IDs');
+      const reply = await backends[backend].delete(ids);
+      const gone = new Set(reply.deleted);
+      const dropped = Object.values(data.mirror).filter(job => job.backend === backend && gone.has(job.sessionId)).map(job => job.jobId);
+      for (const jobId of dropped) {
+        delete data.mirror[jobId];
+        for (const entry of Object.values(data.sessions)) { delete entry.delivered[jobId]; delete entry.notified[jobId]; }
+      }
+      if (dropped.length) changed();
+      return reply;
+    },
     // Ended jobs the model has not read yet, each returned once: the pane wakes the
     // session with them, and a second pane or a reload never wakes it twice.
     notify: async params => {
