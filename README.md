@@ -21,7 +21,7 @@ State lives in `~/.claude/agent-hub` (not `%LOCALAPPDATA%`, of which the package
 ## Requirements
 
 - Windows, Node.js 22+ on `PATH`.
-- Codex: [codex-bridge](https://github.com/RetMnit/codex-bridge) installed (`node setup.mjs` in its folder), which runs `codex exec` for any agent.
+- Codex: [codex-bridge](https://github.com/RetMnit/codex-bridge) 0.3.0 or later installed (`node setup.mjs` in its folder), which runs Codex turns for any agent.
 - DSH: [dsh-bridge](https://github.com/RetMnit/dsh-bridge) installed (`node setup.mjs`, then restart DSH Desktop), the DSH bundle all local agents share.
 
 Agent Hub loads each bridge's client from its `install.json` and calls itself `agent-hub`, so its jobs stay apart from other agents'.

@@ -262,6 +262,17 @@ export function createHub({ state = STATE, backends = { codex: codexBridge(), ds
       if (remember(reply)) changed();
       return compact(data.mirror[job.jobId]);
     },
+    // Adds a message to a job's running turn. Only Codex takes one mid-turn.
+    steer: async params => {
+      const id = owner(params);
+      const job = locate(id, params.jobId);
+      if (typeof params.prompt !== 'string' || !params.prompt.trim()) throw new HubError('hub/steer', 'prompt is required');
+      if (!backends[job.backend].steer) throw new HubError('hub/steer', 'Only Codex jobs take a message mid-turn; wait for this job to end and resume its session');
+      if (terminal(job.status)) throw new HubError('hub/steer', 'This job has ended; resume its session instead');
+      const reply = await backends[job.backend].steer(job.jobId, params.prompt);
+      if (remember(reply)) changed();
+      return compact(data.mirror[job.jobId]);
+    },
     open: async params => {
       const id = owner(params);
       const job = params.jobId ? locate(id, params.jobId) : null;

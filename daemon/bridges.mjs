@@ -43,6 +43,8 @@ export function codexBridge({ state = CODEX_STATE, connect } = {}) {
     resume: async (owner, task) => unify(await call('resume', { sessionId: task.sessionId, prompt: task.prompt, requestId: scoped(owner, task.requestId), ...(task.title ? { title: task.title } : {}) })),
     status: async jobId => unify(await call('status', { jobId })),
     cancel: async jobId => unify(await call('cancel', { jobId })),
+    // A message for the turn that is running.
+    steer: async (jobId, prompt) => unify(await call('steer', { jobId, prompt })),
     open: ({ jobId, sessionId }) => call('open', jobId ? { jobId } : { sessionId }),
     // Every Agent Hub job, at once when anything changed after `cursor`.
     events: async ({ cursor, timeoutMs }) => {

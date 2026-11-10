@@ -116,6 +116,12 @@ const TOOLS: Tool[] = [
     run: async (io, args) => { const value = await call(io, 'cancel', args); void refresh(io); return value },
   },
   {
+    name: 'agents_steer',
+    description: 'Add a message to a running Codex job: a correction, an extra requirement or an answer it needs. Codex reads it before its next step, and the job keeps its jobId. Codex only. A job whose turn has not started yet or has ended refuses it: wait a moment, or use agents_resume. Same permission rule as agents_start.',
+    inputSchema: { type: 'object', additionalProperties: false, required: ['jobId', 'prompt'], properties: { jobId: { type: 'string' }, prompt: { type: 'string' } } },
+    run: async (io, args) => { const value = await call(io, 'steer', args); void refresh(io); return value },
+  },
+  {
     name: 'agents_sessions',
     description: 'Find earlier DSH sessions or Codex threads to resume, by title text or workspace. Reads lists only, not transcripts.',
     inputSchema: { type: 'object', additionalProperties: false, required: ['backend'], properties: { backend, mode: { ...mode, description: 'DSH only: which store to search (default desktop).' }, query: { type: 'string' }, workspace: { type: 'string' }, limit: { type: 'integer', minimum: 1, maximum: 50 } } },

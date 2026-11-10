@@ -111,12 +111,17 @@ test('resume, open and cancel follow each backend\'s rules', async t => {
   const resumed = await call('resume', { backend: 'codex', sessionId: 'thread-1', prompt: 'more', requestId: 'c1' });
   assert.equal('mode' in backends.codex.calls.at(-1)[2], false, 'a Codex resume carries no mode');
   await assert.rejects(call('open', { jobId: resumed.jobId }), { code: 'hub/open' }, 'never open a thread a run still writes');
+  backends.codex.steer = async (jobId, prompt) => { backends.codex.calls.push(['steer', jobId, prompt]); return { ...backends.codex.jobs.get(jobId) }; };
+  await call('steer', { jobId: resumed.jobId, prompt: 'also the docs' });
+  assert.deepEqual(backends.codex.calls.at(-1), ['steer', resumed.jobId, 'also the docs']);
   await call('cancel', { jobId: resumed.jobId });
+  await assert.rejects(call('steer', { jobId: resumed.jobId, prompt: 'late' }), /has ended/);
   assert.equal((await call('state')).subagents[0].status, 'cancelled');
   await call('open', { jobId: resumed.jobId });
   assert.deepEqual(backends.codex.calls.at(-1), ['open', { jobId: resumed.jobId, sessionId: 'thread-1' }]);
   const headless = await call('resume', { backend: 'dsh', sessionId: 'dsh-s', mode: 'headless', prompt: 'x', requestId: 'd2' });
   await assert.rejects(call('open', { jobId: headless.jobId }), /isolated storage/);
+  await assert.rejects(call('steer', { jobId: headless.jobId, prompt: 'x' }), /Only Codex/);
 });
 
 test('a Host that stops answering is reported while its jobs run, and the mirror keeps them', async t => {

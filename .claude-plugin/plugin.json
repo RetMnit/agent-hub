@@ -1,6 +1,6 @@
 {
   "name": "agent-hub",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Delegate tasks to DSH (DeepSeek Harness) and Codex subagents, with per-session settings and a live side pane.",
   "author": { "name": "RetMnit" },
   "types": "./types/index.d.ts"
